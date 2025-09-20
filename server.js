@@ -171,29 +171,5 @@ app.post("/forward", async (req, res) => {
   }
 });
 
-// POST /forward  (tương thích Apps Script cũ)
-app.post("/forward", async (req, res) => {
-  try {
-    await initBrowser();
-    const { url, method = "POST", data = {}, headers = {} } = req.body || {};
-    if (!url) return res.status(400).json({ error: "missing url" });
 
-    const h = Object.assign({
-      accept: "application/json",
-      "content-type": "application/json",
-      referer: "https://tracuunoibo.ghn.vn/",
-      "user-agent": UA
-    }, headers);
-
-    const r = await context.request.fetch(url, {
-      method, headers: h, data,
-      timeout: 45000, failOnStatusCode: false
-    });
-
-    let out; try { out = await r.json(); } catch { out = { text: await r.text() }; }
-    res.status(r.status()).json(out);
-  } catch (e) {
-    res.status(500).json({ error: String(e) });
-  }
-});
 
