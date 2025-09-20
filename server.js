@@ -85,25 +85,28 @@ async function browserFetch(url, headers, data, token) {
   page.setDefaultTimeout(45000);
   try {
     await page.goto(REFERRER + "internal/revert", { waitUntil: "domcontentloaded" });
-    // đặt token vào localStorage cho giống môi trường thật (an toàn hơn)
     await page.evaluate(t => localStorage.setItem("token", t || ""), token || "");
-    const out = await page.evaluate(async (u, h, d) => {
+
+    // ⬇️ QUAN TRỌNG: truyền 1 object duy nhất vào evaluate
+    const out = await page.evaluate(async ({ u, h, d }) => {
       const res = await fetch(u, {
         method: "POST",
         headers: h,
         body: JSON.stringify(d),
         credentials: "include",
-        mode: "cors",
+        mode: "cors"
       });
       const text = await res.text();
       return { status: res.status, text };
-    }, url, headers, data);
+    }, { u: url, h: headers, d: data });
+
     let json = null; try { json = JSON.parse(out.text); } catch {}
     return { status: out.status, json, text: out.text };
   } finally {
     try { await page.close(); } catch {}
   }
 }
+
 
 // --- express app ---
 const app = express();
